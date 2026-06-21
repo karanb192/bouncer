@@ -105,8 +105,18 @@ function resolve(stdin) {
   if (process.argv.length > 2) return { cmd: process.argv.slice(2).join(' '), ctx: {} };
   if (!stdin) return { cmd: '', ctx: {} };
   try {
-    const d = JSON.parse(stdin);                         // Claude Code tool-call JSON
-    if (d.tool_name && d.tool_name !== 'Bash') return { skip: true };
+    const d = JSON.parse(stdin);                         // tool-call JSON
+    // GitHub Copilot CLI preToolUse: camelCase {toolName, toolArgs}. toolArgs may
+    // be an object OR a stringified JSON (double-encoded), so parse it again if so.
+    if (d.toolName) {
+      const shellTools = ['bash', 'shell', 'powershell'];
+      if (!shellTools.includes(String(d.toolName).toLowerCase())) return { skip: true };
+      let args = d.toolArgs;
+      if (typeof args === 'string') { try { args = JSON.parse(args); } catch {} }
+      return { cmd: (args && args.command) || '',
+               ctx: { session_id: d.sessionId, cwd: d.cwd } };
+    }
+    if (d.tool_name && d.tool_name !== 'Bash') return { skip: true };   // Claude Code
     return { cmd: (d.tool_input && d.tool_input.command) || '',
              ctx: { session_id: d.session_id, cwd: d.cwd, permission_mode: d.permission_mode } };
   } catch {

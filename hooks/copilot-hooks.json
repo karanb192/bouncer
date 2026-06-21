@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "bash": "node \"${PLUGIN_ROOT}/bouncer.js\"",
+        "powershell": "node \"${PLUGIN_ROOT}\\bouncer.js\"",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}
