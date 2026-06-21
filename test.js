@@ -65,6 +65,41 @@ test('copilot hook: a safe command passes silently', () => {
   assert.strictEqual(res.stdout.trim(), '{}');
 });
 
+test('gemini hook: run_shell_command footgun is BLOCKED via decision:block', () => {
+  const res = spawnSync('node', [path.join(__dirname, 'bouncer.js')], {
+    input: JSON.stringify({ tool_name: 'run_shell_command', tool_input: { command: 'rm -rf ~' } }),
+    env: { ...process.env, BOUNCER_MODE: 'gemini' }, encoding: 'utf8',
+  });
+  const out = JSON.parse(res.stdout.trim());
+  assert.strictEqual(out.decision, 'block');
+  assert.match(out.reason, /name's not on the list/);
+});
+
+test('gemini hook: ShellTool alias footgun is BLOCKED via decision:block', () => {
+  const res = spawnSync('node', [path.join(__dirname, 'bouncer.js')], {
+    input: JSON.stringify({ tool_name: 'ShellTool', tool_input: { command: 'rm -rf ~' } }),
+    env: { ...process.env, BOUNCER_MODE: 'gemini' }, encoding: 'utf8',
+  });
+  assert.strictEqual(JSON.parse(res.stdout.trim()).decision, 'block');
+});
+
+test('gemini hook: a safe run_shell_command passes silently ({})', () => {
+  const res = spawnSync('node', [path.join(__dirname, 'bouncer.js')], {
+    input: JSON.stringify({ tool_name: 'run_shell_command', tool_input: { command: 'git status' } }),
+    env: { ...process.env, BOUNCER_MODE: 'gemini' }, encoding: 'utf8',
+  });
+  assert.strictEqual(res.stdout.trim(), '{}');
+});
+
+test('regression: run_shell_command is NO LONGER skipped (rm -rf ~ would be allowed before the fix)', () => {
+  // Claude-mode default: a Gemini-shaped run_shell_command footgun must still be denied,
+  // proving resolve() no longer treats it as a non-shell tool to skip.
+  const res = spawnSync('node', [path.join(__dirname, 'bouncer.js')], {
+    input: JSON.stringify({ tool_name: 'run_shell_command', tool_input: { command: 'rm -rf ~' } }), encoding: 'utf8',
+  });
+  assert.strictEqual(JSON.parse(res.stdout.trim()).hookSpecificOutput.permissionDecision, 'deny');
+});
+
 test('exit mode: a footgun exits 2 with the reason on stderr (any-agent hook)', () => {
   const res = spawnSync('node', [path.join(__dirname, 'bouncer.js'), 'rm -rf ~'], {
     env: { ...process.env, BOUNCER_MODE: 'exit' }, encoding: 'utf8',

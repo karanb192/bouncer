@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "BeforeTool": [
+      {
+        "matcher": "run_shell_command",
+        "hooks": [
+          {
+            "name": "bouncer",
+            "type": "command",
+            "command": "BOUNCER_MODE=gemini node \"${extensionPath}/bouncer.js\"",
+            "timeout": 5000
+          }
+        ]
+      }
+    ]
+  }
+}

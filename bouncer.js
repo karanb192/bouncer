@@ -14,6 +14,9 @@
  *                      exits 2 to BLOCK / 0 to ALLOW, reason on stderr. Wire this
  *                      as the pre-exec command hook of ANY agent that blocks on a
  *                      non-zero exit.   e.g.  BOUNCER_MODE=exit node bouncer.js "rm -rf ~"
+ *   gemini (BOUNCER_MODE=gemini) — reads the Gemini CLI BeforeTool JSON on stdin
+ *                      (tool_name "run_shell_command") and prints the deny contract
+ *                      {"decision":"block","reason":...} on stdout. Enforced on Gemini CLI.
  *
  * Tune:  BOUNCER_LEVEL=critical|high|strict   Disable:  BOUNCER_OFF=1
  *   critical - catastrophic only: rm -rf ~, dd to disk, fork bombs, DROP TABLE
@@ -116,7 +119,12 @@ function resolve(stdin) {
       return { cmd: (args && args.command) || '',
                ctx: { session_id: d.sessionId, cwd: d.cwd } };
     }
-    if (d.tool_name && d.tool_name !== 'Bash') return { skip: true };   // Claude Code
+    // Claude Code (tool_name "Bash") and Gemini CLI (BeforeTool, tool_name
+    // "run_shell_command" / alias "ShellTool") share the snake_case tool_input shape.
+    if (d.tool_name) {
+      const shellTools = ['bash', 'run_shell_command', 'shelltool'];
+      if (!shellTools.includes(String(d.tool_name).toLowerCase())) return { skip: true };
+    }
     return { cmd: (d.tool_input && d.tool_input.command) || '',
              ctx: { session_id: d.session_id, cwd: d.cwd, permission_mode: d.permission_mode } };
   } catch {
@@ -126,12 +134,18 @@ function resolve(stdin) {
 
 function allow(mode) {
   if (mode === 'exit') return process.exit(0);
+  // gemini + claude both read a bare {} on stdout as "no decision" => allow.
   console.log('{}');
 }
 
 function deny(mode, p) {
   const msg = `${EMOJIS[p.level]} Bouncer: name's not on the list — [${p.id}] ${p.reason}`;
   if (mode === 'exit') { process.stderr.write(msg + '\n'); return process.exit(2); }
+  if (mode === 'gemini') {
+    // Gemini CLI BeforeTool: isBlockingDecision() honors decision "block"|"deny".
+    console.log(JSON.stringify({ decision: 'block', reason: msg }));
+    return;
+  }
   console.log(JSON.stringify({
     hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny', permissionDecisionReason: msg },
   }));
