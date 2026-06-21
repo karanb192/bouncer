@@ -14,7 +14,7 @@
 
 **A one-file door-guard for your coding agent. Name's not on the list.**
 
-<p align="center"><sub><b>Enforced on Claude Code</b> · portable to any agent with a blocking pre-exec hook · advisory elsewhere</sub></p>
+<p align="center"><sub><b>Enforced on Claude Code, Codex, Copilot CLI &amp; Gemini CLI</b> · advisory on agents without a blocking hook</sub></p>
 
 You've met him. Arms crossed at the door, reading every name on the list. The
 regulars walk in. The ones who'll wreck the place — `rm -rf`, a prod `DROP TABLE`,
@@ -99,9 +99,10 @@ Bouncer speaks the Claude Code hook **deny contract** — it emits
 reliably holds), not a bare `exit 2`. See the
 [Hooks reference](https://code.claude.com/docs/en/hooks).
 
-## Works with any agent — two enforcement modes
+## Works with any agent
 
-One portable filter, two output modes. Pick the row that matches your agent:
+One portable filter that speaks each agent's native deny contract — plus a universal
+exit-code mode for everything else. Pick the row that matches your agent:
 
 | Your agent | Mode | Wire-up |
 |---|---|---|
