@@ -1,0 +1,13 @@
+{
+  "name": "bouncer",
+  "version": "1.0.0",
+  "description": "A one-file PreToolUse door-guard that bounces destructive Bash commands (rm -rf, DROP TABLE, curl|sh, force-push, device wipes) before they run. Blocks 45/45 known footguns, 0 false positives.",
+  "author": {
+    "name": "Karan Bansal",
+    "url": "https://github.com/karanb192"
+  },
+  "homepage": "https://github.com/karanb192/bouncer",
+  "license": "MIT",
+  "keywords": ["security", "safety", "hooks", "guardrails", "claude-code", "pretooluse"],
+  "hooks": "./hooks/bouncer-hooks.json"
+}

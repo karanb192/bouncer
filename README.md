@@ -69,12 +69,28 @@ hosts, env/secret exfil, `DROP`/`TRUNCATE`/un-`WHERE`'d `DELETE`/`UPDATE`,
 
 ## Install (Claude Code)
 
-1. Drop `bouncer.js` anywhere (needs Node ≥18, zero deps).
-2. Merge [`settings.snippet.json`](settings.snippet.json) into
-   `~/.claude/settings.json` (or project `.claude/settings.json`), replacing the
-   path with the absolute path to `bouncer.js`.
-3. Done. Every Bash call passes the door first. Dial protection with
-   `BOUNCER_LEVEL=critical|high|strict` (default `high`); disable with `BOUNCER_OFF=1`.
+```text
+/plugin marketplace add karanb192/bouncer
+/plugin install bouncer@bouncer
+```
+
+That's it. The `PreToolUse` hook registers itself — every Bash call passes the
+door from the next session on. Needs Node ≥18 (zero deps). Dial protection with
+`BOUNCER_LEVEL=critical|high|strict` (default `high`); disable anytime with
+`BOUNCER_OFF=1`.
+
+> **Desktop app** (no `/plugin` command): Customize → the **+** next to personal
+> plugins → *Create plugin and add marketplace* → *Add from repository* →
+> `karanb192/bouncer`.
+
+<details>
+<summary>Manual install (without the plugin system)</summary>
+
+Drop `bouncer.js` anywhere (Node ≥18, zero deps) and merge
+[`settings.snippet.json`](settings.snippet.json) into `~/.claude/settings.json`
+(or project `.claude/settings.json`), replacing the path with the absolute path
+to `bouncer.js`.
+</details>
 
 Bouncer speaks the Claude Code hook **deny contract** — it emits
 `hookSpecificOutput.permissionDecision: "deny"` with a reason (the path that
@@ -87,7 +103,7 @@ One portable filter, two output modes. Pick the row that matches your agent:
 
 | Your agent | Mode | Wire-up |
 |---|---|---|
-| **Claude Code** | ✅ enforced (deny contract) | merge [`settings.snippet.json`](settings.snippet.json) — `PreToolUse → Bash → node bouncer.js` |
+| **Claude Code** | ✅ enforced (deny contract) | `/plugin marketplace add karanb192/bouncer` → `/plugin install bouncer@bouncer` |
 | **Any runner with a pre-exec command hook that blocks on a non-zero exit** — check your tool's hook docs | ✅ enforced (exit-code) | run `BOUNCER_MODE=exit node bouncer.js "<command>"` as the hook: exit **2** blocks, **0** allows, reason on stderr |
 | **Agents with no pre-exec hook** (Cursor, Cline, Aider, …) | 📋 advisory | paste [`footguns.txt`](footguns.txt) into `.cursorrules` / `AGENTS.md` |
 
