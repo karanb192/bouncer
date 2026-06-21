@@ -119,6 +119,8 @@ BOUNCER_MODE=exit node bouncer.js "rm -rf ~";   echo $?   # → 2  (bounced)
 BOUNCER_MODE=exit node bouncer.js "git status";  echo $?   # → 0  (walks in)
 ```
 
+**These are the flags that turn the safety prompts off, which is when a door-guard earns its keep:** `--dangerously-skip-permissions` (Claude Code), `--dangerously-bypass-approvals-and-sandbox` (Codex), `--allow-all` / `--yolo` (Copilot), `--yolo` / `-y` (Gemini).
+
 **Honest scope:** *enforced* anywhere it can sit in front of the command: Claude Code's
 deny contract, Codex CLI's `PreToolUse` deny (same JSON contract; per OpenAI's docs it's a
 guardrail, not a hard sandbox, so Codex can occasionally route equivalent work through another
