@@ -121,11 +121,12 @@ BOUNCER_MODE=exit node bouncer.js "git status";  echo $?   # → 0  (walks in)
 
 **These are the flags that turn the safety prompts off, which is when a door-guard earns its keep:** `--dangerously-skip-permissions` (Claude Code), `--yolo` (Codex, Copilot, Gemini).
 
-**Honest scope:** *enforced* anywhere it can sit in front of the command: Claude Code's
-deny contract, Codex CLI's `PreToolUse` deny (same JSON contract; per OpenAI's docs it's a
-guardrail, not a hard sandbox, so Codex can occasionally route equivalent work through another
-tool path), or any non-zero-exit pre-exec hook. It's *advisory* only where the agent
-exposes no such hook. Never conflate the two.
+**Honest scope:** *enforced* through each agent's native deny contract (see the table above
+for per-agent setup, including Codex's one-time `/hooks` trust). One caveat worth stating: Codex's
+`PreToolUse` is a guardrail, not a hard sandbox per OpenAI's docs, so it can occasionally route
+equivalent work through another tool path. Anywhere else, the exit-code mode enforces in any runner
+with a blocking pre-exec hook; it's *advisory* only where the agent exposes no such hook. Never
+conflate the two.
 
 ## FAQ
 
@@ -139,7 +140,7 @@ whole point of the 41-command safe corpus (a `WHERE`'d `UPDATE` walks in; an
 un-`WHERE`'d one gets bounced). If it ever blocks real work, that's a one-line PR.
 
 **Why one file?** You should be able to read your own bouncer before you trust it
-with your repo. It's ~160 lines of stdlib Node, most of it a rule table you can scan.
+with your repo. It's ~190 lines of stdlib Node: a scannable rule table plus a small engine that speaks each agent's deny contract.
 
 ## Limitations
 
