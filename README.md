@@ -1,7 +1,7 @@
 # Bouncer
 
 <p align="center">
-  <img src="assets/bouncer-social.png" alt="Bouncer — a one-file door-guard for coding agents. Name's not on the list. Blocks 45/45 footguns, 0 false positives." width="840">
+  <img src="assets/bouncer-social.png" alt="Bouncer: a one-file door-guard for coding agents. Name's not on the list. Blocks 45/45 footguns, 0 false positives." width="840">
 </p>
 
 <p align="center">
@@ -17,12 +17,12 @@
 <p align="center"><sub><b>Enforced on Claude Code, Codex, Copilot CLI &amp; Gemini CLI</b> · advisory on agents without a blocking hook</sub></p>
 
 You've met him. Arms crossed at the door, reading every name on the list. The
-regulars walk in. The ones who'll wreck the place — `rm -rf`, a prod `DROP TABLE`,
-a `curl` piped straight to the shell — don't. He doesn't argue. He doesn't explain twice.
+regulars walk in. The ones who'll wreck the place (`rm -rf`, a prod `DROP TABLE`,
+a `curl` piped straight to the shell) don't. He doesn't argue. He doesn't explain twice.
 
 **Bouncer stands in front of your coding agent's shell.** You let it run with
 `--dangerously-skip-permissions`; he reads every command at the door, waves the
-read-only regulars through, and **bounces** the destructive footguns — with the
+read-only regulars through, and **bounces** the destructive footguns, naming the
 exact rule that fired.
 
 ```text
@@ -37,20 +37,20 @@ exact rule that fired.
 ```
 
 Every line above is real: those four are in [`footguns.txt`](footguns.txt) (denied),
-those two in [`safe.txt`](safe.txt) (allowed) — verified by `npm test`.
+those two in [`safe.txt`](safe.txt) (allowed), verified by `npm test`.
 
 ## The honest number
 
-> **Blocks 45/45 known footguns · 0 false positives on 41 safe commands** — and it
+> **Blocks 45/45 known footguns · 0 false positives on 41 safe commands.** It
 > openly documents the one class it *can't* catch:
 > [obfuscated payloads](KNOWN-BYPASSES.md) (base64, `eval`, variable-split).
 
-(100% of a *named, public* list — not "100% safe." The list of what it misses ships
+(100% of a *named, public* list, not "100% safe." The list of what it misses ships
 right next to it; that's the difference between a number you can trust and one that reads as fake.)
 
 No marking our own homework. The footguns are **public and labeled**
 ([`footguns.txt`](footguns.txt)); the safe corpus is **separate and public**
-([`safe.txt`](safe.txt) — the anti-homework metric, because a guard that blocks
+([`safe.txt`](safe.txt), the anti-homework metric, because a guard that blocks
 real work gets uninstalled in week one); both run through the **real hook**.
 Reproduce it on your machine in one command:
 
@@ -76,7 +76,7 @@ hosts, env/secret exfil, `DROP`/`TRUNCATE`/un-`WHERE`'d `DELETE`/`UPDATE`,
 /plugin install bouncer@bouncer
 ```
 
-That's it. The `PreToolUse` hook registers itself — every Bash call passes the
+That's it. The `PreToolUse` hook registers itself. Every Bash call passes the
 door from the next session on. Needs Node ≥18 (zero deps). Dial protection with
 `BOUNCER_LEVEL=critical|high|strict` (default `high`); disable anytime with
 `BOUNCER_OFF=1`.
@@ -94,14 +94,14 @@ Drop `bouncer.js` anywhere (Node ≥18, zero deps) and merge
 to `bouncer.js`.
 </details>
 
-Bouncer speaks the Claude Code hook **deny contract** — it emits
+Bouncer speaks the Claude Code hook **deny contract**: it emits
 `hookSpecificOutput.permissionDecision: "deny"` with a reason (the path that
 reliably holds), not a bare `exit 2`. See the
 [Hooks reference](https://code.claude.com/docs/en/hooks).
 
 ## Works with any agent
 
-One portable filter that speaks each agent's native deny contract — plus a universal
+One portable filter that speaks each agent's native deny contract, plus a universal
 exit-code mode for everything else. Pick the row that matches your agent:
 
 | Your agent | Mode | Wire-up |
@@ -109,42 +109,42 @@ exit-code mode for everything else. Pick the row that matches your agent:
 | **Claude Code** | ✅ enforced (deny contract) | `/plugin marketplace add karanb192/bouncer` → `/plugin install bouncer@bouncer` |
 | **Codex CLI** | ✅ enforced (PreToolUse deny) | `codex plugin marketplace add karanb192/bouncer` → `codex plugin add bouncer@bouncer` |
 | **GitHub Copilot CLI** | ✅ enforced (fail-closed `preToolUse` deny) | `copilot plugin marketplace add karanb192/bouncer` → `copilot plugin install bouncer@bouncer` |
-| **Gemini CLI** | ✅ enforced (`BeforeTool` `decision:block`) | `gemini extensions install https://github.com/karanb192/bouncer` (shorthand `gemini extensions install karanb192/bouncer` also works) — approve the hooks-consent prompt |
-| **Any runner with a pre-exec command hook that blocks on a non-zero exit** — check your tool's hook docs | ✅ enforced (exit-code) | run `BOUNCER_MODE=exit node bouncer.js "<command>"` as the hook: exit **2** blocks, **0** allows, reason on stderr |
+| **Gemini CLI** | ✅ enforced (`BeforeTool` `decision:block`) | `gemini extensions install https://github.com/karanb192/bouncer` (shorthand `gemini extensions install karanb192/bouncer` also works), then approve the hooks-consent prompt |
+| **Any runner with a pre-exec command hook that blocks on a non-zero exit** (check your tool's hook docs) | ✅ enforced (exit-code) | run `BOUNCER_MODE=exit node bouncer.js "<command>"` as the hook: exit **2** blocks, **0** allows, reason on stderr |
 | **Agents with no pre-exec hook** (Cursor, Cline, Aider, …) | 📋 advisory | paste [`footguns.txt`](footguns.txt) into `.cursorrules` / `AGENTS.md` |
 
 ```bash
-# exit-code mode — the universal, agent-agnostic contract
+# exit-code mode: the universal, agent-agnostic contract
 BOUNCER_MODE=exit node bouncer.js "rm -rf ~";   echo $?   # → 2  (bounced)
 BOUNCER_MODE=exit node bouncer.js "git status";  echo $?   # → 0  (walks in)
 ```
 
-**Honest scope:** *enforced* anywhere it can sit in front of the command — Claude Code's
+**Honest scope:** *enforced* anywhere it can sit in front of the command: Claude Code's
 deny contract, Codex CLI's `PreToolUse` deny (same JSON contract; per OpenAI's docs it's a
-guardrail, not a hard sandbox — Codex can occasionally route equivalent work through another
-tool path), or any non-zero-exit pre-exec hook — and *advisory* only where the agent
+guardrail, not a hard sandbox, so Codex can occasionally route equivalent work through another
+tool path), or any non-zero-exit pre-exec hook. It's *advisory* only where the agent
 exposes no such hook. Never conflate the two.
 
 ## FAQ
 
 **Is this a sandbox?** No. It's a seatbelt for the ~95% of footguns that are
-*accidental* — the agent that panics, not the adversary who obfuscates. A
-base64'd, `eval`'d payload can still get past it — the exact classes are listed in
+*accidental*: the agent that panics, not the adversary who obfuscates. A
+base64'd, `eval`'d payload can still get past it. The exact classes are listed in
 [`KNOWN-BYPASSES.md`](KNOWN-BYPASSES.md). That's honesty, not a bug you found.
 
-**Will it block my normal `git`/`npm`/`docker`/`psql` work?** No — that's the
+**Will it block my normal `git`/`npm`/`docker`/`psql` work?** No, that's the
 whole point of the 41-command safe corpus (a `WHERE`'d `UPDATE` walks in; an
 un-`WHERE`'d one gets bounced). If it ever blocks real work, that's a one-line PR.
 
 **Why one file?** You should be able to read your own bouncer before you trust it
-with your repo. It's ~160 lines of stdlib Node — most of it a rule table you can scan.
+with your repo. It's ~160 lines of stdlib Node, most of it a rule table you can scan.
 
 ## Limitations
 
 Bouncer is a **regex filter, not a sandbox.** It stops the ~95% of footguns that are
 *accidental*, not an adversary who obfuscates. [`KNOWN-BYPASSES.md`](KNOWN-BYPASSES.md)
 lists the exact classes it can't catch (base64, `eval`, variable-split, string-split SQL),
-each with *why* a regex misses it — and each pinned by a test so the headline number can
+each with *why* a regex misses it, and each pinned by a test so the headline number can
 never quietly overstate coverage. **A found gap is a one-line PR**, not a gotcha.
 
 ## License
