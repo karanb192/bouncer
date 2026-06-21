@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" font-family="'Arial Black','Helvetica Neue',Helvetica,Arial,sans-serif">
+  <defs>
+    <radialGradient id="spot" cx="30%" cy="38%" r="60%">
+      <stop offset="0%" stop-color="#e23b2c" stop-opacity="0.28"/>
+      <stop offset="55%" stop-color="#e23b2c" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#e23b2c" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1c1813"/>
+      <stop offset="100%" stop-color="#0e0b08"/>
+    </linearGradient>
+  </defs>
+
+  <!-- background -->
+  <rect width="1280" height="640" fill="#15110d"/>
+  <rect width="1280" height="640" fill="url(#spot)"/>
+  <rect y="470" width="1280" height="170" fill="url(#floor)"/>
+  <!-- door frame behind bouncer -->
+  <rect x="150" y="40" width="430" height="540" rx="215" fill="#1b1610" stroke="#2c261e" stroke-width="8"/>
+  <rect x="150" y="40" width="430" height="540" rx="215" fill="none" stroke="#3a3225" stroke-width="2"/>
+
+  <!-- ===== BOUNCER (flat mascot, arms crossed) ===== -->
+  <g>
+    <!-- floor shadow -->
+    <ellipse cx="365" cy="556" rx="170" ry="26" fill="#000" opacity="0.45"/>
+
+    <!-- suit body / broad shoulders -->
+    <path d="M196,560 L218,360 C232,300 300,276 365,276 C430,276 498,300 512,360 L534,560 Z"
+          fill="#100d0a" stroke="#2b2620" stroke-width="3"/>
+
+    <!-- neck -->
+    <rect x="332" y="246" width="66" height="56" rx="14" fill="#9a6a44"/>
+
+    <!-- shirt + lapels + tie -->
+    <path d="M312,288 L365,372 L418,288 L398,300 L365,348 L332,300 Z" fill="#f1ebdd"/>
+    <path d="M365,348 L352,360 L360,470 L365,484 L370,470 L378,360 Z" fill="#8e2418"/>
+    <path d="M312,288 L365,372 L338,372 Z" fill="#0c0a08"/>
+    <path d="M418,288 L365,372 L392,372 Z" fill="#0c0a08"/>
+
+    <!-- head -->
+    <circle cx="365" cy="200" r="66" fill="#b97c52"/>
+    <!-- ears -->
+    <ellipse cx="299" cy="206" rx="13" ry="18" fill="#a96f48"/>
+    <ellipse cx="431" cy="206" rx="13" ry="18" fill="#a96f48"/>
+    <!-- buzzcut cap -->
+    <path d="M303,168 A64,64 0 0,1 427,168 C407,150 323,150 303,168 Z" fill="#2a211a"/>
+    <!-- stubble jaw -->
+    <path d="M312,214 A56,56 0 0,0 418,214 C404,250 326,250 312,214 Z" fill="#9a6643" opacity="0.55"/>
+    <!-- brow -->
+    <path d="M312,178 C332,170 398,170 418,178" fill="none" stroke="#7c5132" stroke-width="5" stroke-linecap="round"/>
+    <!-- sunglasses -->
+    <g>
+      <rect x="300" y="186" width="130" height="6" rx="3" fill="#0b0907"/>
+      <ellipse cx="333" cy="202" rx="26" ry="19" fill="#0b0907"/>
+      <ellipse cx="397" cy="202" rx="26" ry="19" fill="#0b0907"/>
+      <path d="M359,200 h12" stroke="#0b0907" stroke-width="8"/>
+      <!-- club-light reflection in the lenses -->
+      <path d="M320,210 L344,192" stroke="#e23b2c" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
+      <path d="M384,210 L408,192" stroke="#e23b2c" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
+    </g>
+    <!-- stern, flat mouth -->
+    <path d="M341,246 C353,243 377,243 389,246" fill="none" stroke="#6f4326" stroke-width="5" stroke-linecap="round"/>
+
+    <!-- earpiece (tight wire down to collar, not a hoop) -->
+    <circle cx="431" cy="205" r="5" fill="#d8d2c6"/>
+    <path d="M433,209 C443,219 441,236 428,248 C423,253 421,261 424,270" fill="none" stroke="#cdc7bb" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- crossed arms -->
+    <rect x="246" y="372" width="210" height="50" rx="25" fill="#0c0a08" stroke="#2b2620" stroke-width="3" transform="rotate(18 365 397)"/>
+    <rect x="274" y="372" width="210" height="50" rx="25" fill="#161210" stroke="#2b2620" stroke-width="3" transform="rotate(-18 365 397)"/>
+    <!-- fists -->
+    <circle cx="268" cy="430" r="24" fill="#b97c52" stroke="#9a6a44" stroke-width="2"/>
+    <circle cx="462" cy="430" r="24" fill="#b97c52" stroke="#9a6a44" stroke-width="2"/>
+  </g>
+
+  <!-- ===== velvet rope ===== -->
+  <g>
+    <!-- posts -->
+    <rect x="158" y="486" width="14" height="92" rx="7" fill="#c8a24a"/>
+    <circle cx="165" cy="482" r="13" fill="#d8b45e"/>
+    <rect x="556" y="486" width="14" height="92" rx="7" fill="#c8a24a"/>
+    <circle cx="563" cy="482" r="13" fill="#d8b45e"/>
+    <!-- rope swag -->
+    <path d="M165,492 Q365,600 563,492" fill="none" stroke="#7c1d12" stroke-width="16" stroke-linecap="round"/>
+    <path d="M165,492 Q365,600 563,492" fill="none" stroke="#b9342099" stroke-width="6" stroke-linecap="round" opacity="0.7"/>
+  </g>
+
+  <!-- ===== type block ===== -->
+  <g>
+    <text x="624" y="120" font-family="'Courier New',monospace" font-size="19" letter-spacing="3" fill="#8a8073">CLAUDE CODE · PreToolUse HOOK · MIT</text>
+
+    <!-- no-entry badge -->
+    <circle cx="648" cy="196" r="26" fill="none" stroke="#e23b2c" stroke-width="8"/>
+    <rect x="630" y="190" width="36" height="12" rx="2" fill="#e23b2c"/>
+
+    <text x="690" y="212" font-size="92" letter-spacing="2" fill="#f5efe2">BOUNCER</text>
+
+    <text x="626" y="292" font-family="Georgia,'Times New Roman',serif" font-style="italic" font-size="44" fill="#e23b2c">“Name’s not on the list.”</text>
+
+    <text x="628" y="346" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="30" fill="#cdc4b4">A one-file door-guard for coding agents.</text>
+
+    <!-- stat pill -->
+    <rect x="626" y="386" width="612" height="74" rx="37" fill="#1f1912" stroke="#e23b2c" stroke-width="2"/>
+    <circle cx="668" cy="423" r="17" fill="none" stroke="#e23b2c" stroke-width="5"/>
+    <rect x="657" y="419" width="22" height="8" rx="2" fill="#e23b2c"/>
+    <text x="700" y="432" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif" font-weight="bold" font-size="27" fill="#f5efe2">45/45 footguns blocked · 0 false positives</text>
+
+    <text x="628" y="512" font-family="'Courier New',monospace" font-size="19" fill="#8a8073">$ npm test   ·   reproduce it yourself</text>
+    <text x="628" y="556" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="18" fill="#6f675b">engine extracted from claude-code-hooks · 262 tests</text>
+  </g>
+</svg>

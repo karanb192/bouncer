@@ -1,0 +1,10 @@
+{
+  "name": "bouncer-hook",
+  "version": "1.0.0",
+  "description": "A one-file PreToolUse door-guard for coding agents. The dangerous commands don't get in.",
+  "bin": { "bouncer": "bouncer.js" },
+  "scripts": { "test": "node --test test.js" },
+  "keywords": ["claude-code", "hook", "pretooluse", "safety", "security", "agent", "guardrail"],
+  "license": "MIT",
+  "engines": { "node": ">=18.0.0" }
+}
