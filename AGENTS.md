@@ -2,7 +2,7 @@
 
 A door-guard sits in front of your shell. Every `run_shell_command` call passes
 the door before it runs; destructive commands are **blocked** by an enforced
-`BeforeTool` hook — not by you, and not negotiable.
+`BeforeTool` hook, not by you, and not negotiable.
 
 Don't try to run the footguns below. They will be bounced with the exact rule
 that fired, and the turn is wasted. Reach for the safe alternative instead.
@@ -22,6 +22,6 @@ that fired, and the turn is wasted. Reach for the safe alternative instead.
 **Walk right in:** read-only inspection, scoped edits, `git status`/`diff`/`add`/`commit`,
 tests, builds, a `WHERE`'d `UPDATE`, normal `npm`/`docker`/`psql` work.
 
-This advisory is belt-and-suspenders. The real enforcement is the hook — but
+This advisory is belt-and-suspenders. The real enforcement is the hook, but
 not provoking it keeps your turns productive. Tune with
 `BOUNCER_LEVEL=critical|high|strict`; disable with `BOUNCER_OFF=1`.

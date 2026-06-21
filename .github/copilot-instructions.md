@@ -1,8 +1,8 @@
-# Bouncer — destructive-command guardrails
+# Bouncer: destructive-command guardrails
 
 Bouncer enforces these rules at the door via a fail-closed `preToolUse` hook. This
 list is the **advisory, defense-in-depth layer**: do not propose or run any of the
-following destructive shell commands. The hook will deny them anyway — don't waste a turn.
+following destructive shell commands. The hook will deny them anyway, so don't waste a turn.
 
 Never run a command that:
 

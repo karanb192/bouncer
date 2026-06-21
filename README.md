@@ -1,7 +1,7 @@
 # Bouncer
 
 <p align="center">
-  <img src="assets/bouncer-social.png" alt="Bouncer: a one-file door-guard for coding agents. Name's not on the list. Blocks 45/45 footguns, 0 false positives." width="840">
+  <img src="assets/bouncer-social.png" alt="Bouncer: a one-file door-guard for your coding agent. Name's not on the list. Blocks 45/45 footguns, 0 false positives." width="840">
 </p>
 
 <p align="center">

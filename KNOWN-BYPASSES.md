@@ -1,18 +1,18 @@
 # Known bypasses
 
 **Bouncer is a regex filter, not a sandbox.** It reads the literal command and
-matches dangerous shapes. That stops the ~95% of footguns that are *accidental* —
-the agent that panics, the fat-fingered prod command — but an attacker (or an
+matches dangerous shapes. That stops the ~95% of footguns that are *accidental*
+(the agent that panics, the fat-fingered prod command), but an attacker (or an
 agent that decides to obfuscate) can hide the dangerous string from the regex.
 
-This file lists, honestly, the classes Bouncer **cannot** catch — each one
+This file lists, honestly, the classes Bouncer **cannot** catch. Each one is
 verified to pass straight through the real hook. Pinned by a test
 (`documented bypasses are knowingly NOT blocked`) so we can never quietly claim
 coverage we don't have. **A found gap is a one-line PR**, not a gotcha.
 
 | # | Class | Example (passes through) | Why a regex misses it |
 |---|---|---|---|
-| 1 | Base64 → shell | `echo cm0gLXJmIH4= \| base64 -d \| sh` | the dangerous string only exists *after* decoding at runtime — the bytes on the line are harmless |
+| 1 | Base64 → shell | `echo cm0gLXJmIH4= \| base64 -d \| sh` | the dangerous string only exists *after* decoding at runtime; the bytes on the line are harmless |
 | 2 | Variable-split | `R=rm; $R -rf ~` | the token `rm` is assembled from `$R` at runtime; `\brm\b` never appears |
 | 3 | `eval` / `printf` | `eval "$(printf 'rm -rf ~')"` | the payload is constructed inside a subshell; the literal command is `eval`, not `rm` |
 | 4 | String-split keyword | `psql -c "DR""OP TABLE users"` | the shell concatenates `"DR"` + `"OP"` into `DROP`; the regex sees neither half |
@@ -21,7 +21,7 @@ coverage we don't have. **A found gap is a one-line PR**, not a gotcha.
 
 ## What this means
 
-- **In `claude` mode**, Claude Code still shows you the command before it runs —
+- **In `claude` mode**, Claude Code still shows you the command before it runs, so
   Bouncer is a *second* net for the obvious stuff, not the only one. Obfuscated
   payloads are exactly the case where you should still be reading.
 - **Bouncer's promise is the seatbelt, not the bank vault.** If your threat model
