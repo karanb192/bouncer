@@ -14,8 +14,6 @@
 
 **A one-file door-guard for your coding agent. Name's not on the list.**
 
-<p align="center"><sub><b>Enforced on Claude Code, Codex, Copilot CLI &amp; Gemini CLI</b> · advisory on agents without a blocking hook</sub></p>
-
 You've met him. Arms crossed at the door, reading every name on the list. The
 regulars walk in. The ones who'll wreck the place (`rm -rf`, a prod `DROP TABLE`,
 a `curl` piped straight to the shell) don't. He doesn't argue. He doesn't explain twice.
