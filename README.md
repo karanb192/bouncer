@@ -12,16 +12,18 @@
   <img src="https://img.shields.io/badge/license-MIT-b0820f?style=flat-square" alt="MIT license">
 </p>
 
-**A one-file door-guard for coding agents. Name's not on the list.**
+**A one-file door-guard for your coding agent. Name's not on the list.**
 
-You let your agent run with `--dangerously-skip-permissions`. One day it runs
-`rm -rf`, a prod `DROP TABLE`, or a `curl | sh` it was *explicitly told not to*.
-Bouncer is a single `PreToolUse` hook that stands at the door of every Bash call:
-read-only commands walk in, destructive footguns get **bounced** — with the exact
-rule that fired.
+<p align="center"><sub><b>Enforced on Claude Code</b> · portable to any agent with a blocking pre-exec hook · advisory elsewhere</sub></p>
 
-**He's seen every fake ID.** Reads every command at the door, bounces the ones
-that'll wreck the place, waves the regulars through. Says little.
+You've met him. Arms crossed at the door, reading every name on the list. The
+regulars walk in. The ones who'll wreck the place — `rm -rf`, a prod `DROP TABLE`,
+a `curl` piped straight to the shell — don't. He doesn't argue. He doesn't explain twice.
+
+**Bouncer stands in front of your coding agent's shell.** You let it run with
+`--dangerously-skip-permissions`; he reads every command at the door, waves the
+read-only regulars through, and **bounces** the destructive footguns — with the
+exact rule that fired.
 
 ```text
   the agent at 3am, --dangerously-skip-permissions on:
