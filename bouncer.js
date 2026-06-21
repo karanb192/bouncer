@@ -144,7 +144,7 @@ function allow(mode) {
 }
 
 function deny(mode, p) {
-  const msg = `${EMOJIS[p.level]} Bouncer: name's not on the list — [${p.id}] ${p.reason}`;
+  const msg = `${EMOJIS[p.level]} Bouncer: name's not on the list. [${p.id}] ${p.reason}`;
   if (mode === 'exit') { process.stderr.write(msg + '\n'); return process.exit(2); }
   if (mode === 'gemini') {
     // Gemini CLI BeforeTool: isBlockingDecision() honors decision "block"|"deny".
