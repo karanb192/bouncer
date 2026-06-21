@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" font-family="'Arial Black','Helvetica Neue',Helvetica,Arial,sans-serif">
+  <!-- velvet rope in front of the legs -->
+  <g>
+    <rect x="116" y="476" width="13" height="126" rx="6.5" fill="#c8a24a"/>
+    <circle cx="122.5" cy="472" r="12" fill="#d8b45e"/>
+    <rect x="438" y="476" width="13" height="126" rx="6.5" fill="#c8a24a"/>
+    <circle cx="444.5" cy="472" r="12" fill="#d8b45e"/>
+    <path d="M122,482 Q283,582 444,482" fill="none" stroke="#8e2114" stroke-width="15" stroke-linecap="round"/>
+    <path d="M122,482 Q283,582 444,482" fill="none" stroke="#c8442b" stroke-width="5" stroke-linecap="round" opacity="0.6"/>
+  </g>
+
+  <!-- type block -->
+  <g>
+    <text x="522" y="126" font-family="'Courier New',monospace" font-size="19" letter-spacing="3" fill="#9a9080">CLAUDE CODE · PreToolUse HOOK · MIT</text>
+
+    <circle cx="544" cy="194" r="24" fill="none" stroke="#d4452a" stroke-width="8"/>
+    <rect x="528" y="188" width="32" height="11" rx="2" fill="#d4452a"/>
+    <text x="584" y="212" font-size="92" letter-spacing="2" fill="#17130f">BOUNCER</text>
+
+    <text x="524" y="290" font-family="Georgia,'Times New Roman',serif" font-style="italic" font-size="42" fill="#c8442b">“Name’s not on the list.”</text>
+    <text x="526" y="340" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="29" fill="#55504a">A one-file door-guard for coding agents.</text>
+
+    <rect x="524" y="378" width="650" height="72" rx="36" fill="#ffffff" stroke="#d4452a" stroke-width="2"/>
+    <circle cx="566" cy="414" r="16" fill="none" stroke="#d4452a" stroke-width="5"/>
+    <rect x="555" y="410" width="22" height="8" rx="2" fill="#d4452a"/>
+    <text x="598" y="423" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif" font-weight="bold" font-size="26" fill="#17130f">45/45 footguns blocked · 0 false positives</text>
+
+    <text x="526" y="506" font-family="'Courier New',monospace" font-size="19" fill="#9a9080">$ npm test   ·   reproduce it yourself</text>
+    <text x="526" y="546" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif" font-size="18" fill="#b0a597">engine extracted from claude-code-hooks · 262 tests</text>
+  </g>
+</svg>
