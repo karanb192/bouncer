@@ -44,25 +44,31 @@ test('real hook: a safe command passes silently', () => {
   assert.strictEqual(res.stdout.trim(), '{}');
 });
 
-test('copilot hook: object toolArgs — a footgun is DENIED via permissionDecision', () => {
+// These assert the FLAT shape Copilot actually consumes (not bouncer's own wrapper).
+test('copilot mode: object toolArgs footgun → FLAT permissionDecision deny', () => {
   const res = spawnSync('node', [path.join(__dirname, 'bouncer.js')], {
-    input: JSON.stringify({ toolName: 'bash', toolArgs: { command: 'rm -rf ~' } }), encoding: 'utf8',
+    input: JSON.stringify({ toolName: 'bash', toolArgs: { command: 'rm -rf ~' } }),
+    env: { ...process.env, BOUNCER_MODE: 'copilot' }, encoding: 'utf8',
   });
-  assert.strictEqual(JSON.parse(res.stdout.trim()).hookSpecificOutput.permissionDecision, 'deny');
+  const out = JSON.parse(res.stdout.trim());
+  assert.strictEqual(out.permissionDecision, 'deny');
+  assert.strictEqual(out.hookSpecificOutput, undefined); // FLAT, not the Claude wrapper
 });
 
-test('copilot hook: stringified (double-encoded) toolArgs — a footgun is DENIED', () => {
+test('copilot mode: stringified (double-encoded) toolArgs footgun → FLAT deny', () => {
   const res = spawnSync('node', [path.join(__dirname, 'bouncer.js')], {
-    input: JSON.stringify({ toolName: 'bash', toolArgs: JSON.stringify({ command: 'rm -rf ~' }) }), encoding: 'utf8',
+    input: JSON.stringify({ toolName: 'bash', toolArgs: JSON.stringify({ command: 'rm -rf ~' }) }),
+    env: { ...process.env, BOUNCER_MODE: 'copilot' }, encoding: 'utf8',
   });
-  assert.strictEqual(JSON.parse(res.stdout.trim()).hookSpecificOutput.permissionDecision, 'deny');
+  assert.strictEqual(JSON.parse(res.stdout.trim()).permissionDecision, 'deny');
 });
 
-test('copilot hook: a safe command passes silently', () => {
+test('copilot mode: a safe command → explicit allow (fail-closed agent needs a decision)', () => {
   const res = spawnSync('node', [path.join(__dirname, 'bouncer.js')], {
-    input: JSON.stringify({ toolName: 'bash', toolArgs: { command: 'ls' } }), encoding: 'utf8',
+    input: JSON.stringify({ toolName: 'bash', toolArgs: { command: 'ls' } }),
+    env: { ...process.env, BOUNCER_MODE: 'copilot' }, encoding: 'utf8',
   });
-  assert.strictEqual(res.stdout.trim(), '{}');
+  assert.strictEqual(JSON.parse(res.stdout.trim()).permissionDecision, 'allow');
 });
 
 test('gemini hook: run_shell_command footgun is BLOCKED via decision:block', () => {

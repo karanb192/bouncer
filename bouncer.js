@@ -17,6 +17,9 @@
  *   gemini (BOUNCER_MODE=gemini) — reads the Gemini CLI BeforeTool JSON on stdin
  *                      (tool_name "run_shell_command") and prints the deny contract
  *                      {"decision":"block","reason":...} on stdout. Enforced on Gemini CLI.
+ *   copilot (BOUNCER_MODE=copilot) — reads Copilot CLI preToolUse camelCase JSON
+ *                      (toolName/toolArgs.command) and prints the FLAT deny contract
+ *                      {"permissionDecision":"deny",...} on stdout. Enforced on Copilot CLI.
  *
  * Tune:  BOUNCER_LEVEL=critical|high|strict   Disable:  BOUNCER_OFF=1
  *   critical - catastrophic only: rm -rf ~, dd to disk, fork bombs, DROP TABLE
@@ -134,6 +137,8 @@ function resolve(stdin) {
 
 function allow(mode) {
   if (mode === 'exit') return process.exit(0);
+  // Copilot's preToolUse is fail-closed, so emit an explicit allow (never ambiguous).
+  if (mode === 'copilot') return console.log(JSON.stringify({ permissionDecision: 'allow' }));
   // gemini + claude both read a bare {} on stdout as "no decision" => allow.
   console.log('{}');
 }
@@ -144,6 +149,11 @@ function deny(mode, p) {
   if (mode === 'gemini') {
     // Gemini CLI BeforeTool: isBlockingDecision() honors decision "block"|"deny".
     console.log(JSON.stringify({ decision: 'block', reason: msg }));
+    return;
+  }
+  if (mode === 'copilot') {
+    // GitHub Copilot CLI preToolUse wants the FLAT top-level shape (no hookSpecificOutput wrapper).
+    console.log(JSON.stringify({ permissionDecision: 'deny', permissionDecisionReason: msg }));
     return;
   }
   console.log(JSON.stringify({
