@@ -107,7 +107,7 @@ exit-code mode for everything else. Pick the row that matches your agent:
 | Your agent | Mode | Wire-up |
 |---|---|---|
 | **Claude Code** | ✅ enforced (deny contract) | `/plugin marketplace add karanb192/bouncer` → `/plugin install bouncer@bouncer` |
-| **Codex CLI** | ✅ enforced (PreToolUse deny) | `codex plugin marketplace add karanb192/bouncer` → `codex plugin add bouncer@bouncer` |
+| **Codex CLI** | ✅ enforced (PreToolUse deny), once trusted | `codex plugin marketplace add karanb192/bouncer` → `codex plugin add bouncer@bouncer`, then run `/hooks` in Codex and trust Bouncer. Until you trust it, Codex **silently skips** the hook. |
 | **GitHub Copilot CLI** | ✅ enforced (fail-closed `preToolUse` deny) | `copilot plugin marketplace add karanb192/bouncer` → `copilot plugin install bouncer@bouncer` |
 | **Gemini CLI** | ✅ enforced (`BeforeTool` `decision:block`) | `gemini extensions install https://github.com/karanb192/bouncer` (shorthand `gemini extensions install karanb192/bouncer` also works), then approve the hooks-consent prompt |
 | **Any runner with a pre-exec command hook that blocks on a non-zero exit** (check your tool's hook docs) | ✅ enforced (exit-code) | run `BOUNCER_MODE=exit node bouncer.js "<command>"` as the hook: exit **2** blocks, **0** allows, reason on stderr |
@@ -119,7 +119,7 @@ BOUNCER_MODE=exit node bouncer.js "rm -rf ~";   echo $?   # → 2  (bounced)
 BOUNCER_MODE=exit node bouncer.js "git status";  echo $?   # → 0  (walks in)
 ```
 
-**These are the flags that turn the safety prompts off, which is when a door-guard earns its keep:** `--dangerously-skip-permissions` (Claude Code), `--dangerously-bypass-approvals-and-sandbox` (Codex), `--allow-all` / `--yolo` (Copilot), `--yolo` / `-y` (Gemini).
+**These are the flags that turn the safety prompts off, which is when a door-guard earns its keep:** `--dangerously-skip-permissions` (Claude Code), `--yolo` (Codex, Copilot, Gemini).
 
 **Honest scope:** *enforced* anywhere it can sit in front of the command: Claude Code's
 deny contract, Codex CLI's `PreToolUse` deny (same JSON contract; per OpenAI's docs it's a
