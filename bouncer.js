@@ -7,16 +7,22 @@
  * 262 passing tests) and extended with database / exfil / device footguns.
  * https://github.com/karanb192/claude-code-hooks
  *
- * Honest scope: ENFORCED on Claude Code via the PreToolUse deny contract;
- * ADVISORY (paste footguns.txt into your rules file) on agents without hooks.
+ * Two enforcement modes — same engine, different door:
+ *   claude (default) — reads the PreToolUse tool-call JSON on stdin and emits the
+ *                      permissionDecision:"deny" contract. Enforced on Claude Code.
+ *   exit  (BOUNCER_MODE=exit) — reads the command from argv (or raw stdin) and
+ *                      exits 2 to BLOCK / 0 to ALLOW, reason on stderr. Wire this
+ *                      as the pre-exec command hook of ANY agent that blocks on a
+ *                      non-zero exit.   e.g.  BOUNCER_MODE=exit node bouncer.js "rm -rf ~"
  *
  * Tune:  BOUNCER_LEVEL=critical|high|strict   Disable:  BOUNCER_OFF=1
  *   critical - catastrophic only: rm -rf ~, dd to disk, fork bombs, DROP TABLE
  *   high     - + data loss / secrets / RCE  (default)
  *   strict   - + cautionary: any force push, sudo rm, docker prune
  *
- * Setup — merge settings.snippet.json into .claude/settings.json:
+ * Setup (Claude Code) — merge settings.snippet.json into .claude/settings.json:
  *   PreToolUse -> matcher "Bash" -> command "node /abs/path/bouncer.js"
+ * Limits: a regex filter, not a sandbox — see KNOWN-BYPASSES.md.
  */
 
 const fs = require('fs');
@@ -94,35 +100,53 @@ function checkCommand(cmd, safetyLevel = SAFETY_LEVEL) {
   return { blocked: false, pattern: null };
 }
 
+// Where's the command coming from? argv (generic CLI) > Claude JSON > raw stdin.
+function resolve(stdin) {
+  if (process.argv.length > 2) return { cmd: process.argv.slice(2).join(' '), ctx: {} };
+  if (!stdin) return { cmd: '', ctx: {} };
+  try {
+    const d = JSON.parse(stdin);                         // Claude Code tool-call JSON
+    if (d.tool_name && d.tool_name !== 'Bash') return { skip: true };
+    return { cmd: (d.tool_input && d.tool_input.command) || '',
+             ctx: { session_id: d.session_id, cwd: d.cwd, permission_mode: d.permission_mode } };
+  } catch {
+    return { cmd: stdin.trim(), ctx: {} };               // raw command piped on stdin
+  }
+}
+
+function allow(mode) {
+  if (mode === 'exit') return process.exit(0);
+  console.log('{}');
+}
+
+function deny(mode, p) {
+  const msg = `${EMOJIS[p.level]} Bouncer: name's not on the list — [${p.id}] ${p.reason}`;
+  if (mode === 'exit') { process.stderr.write(msg + '\n'); return process.exit(2); }
+  console.log(JSON.stringify({
+    hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny', permissionDecisionReason: msg },
+  }));
+}
+
 async function main() {
-  if (process.env.BOUNCER_OFF) return console.log('{}');
+  const mode = process.env.BOUNCER_MODE || 'claude';
+  if (process.env.BOUNCER_OFF) return allow(mode);
 
   let input = '';
-  for await (const chunk of process.stdin) input += chunk;
+  if (process.argv.length <= 2) { for await (const chunk of process.stdin) input += chunk; }
 
   try {
-    const data = JSON.parse(input);
-    const { tool_name, tool_input, session_id, cwd, permission_mode } = data;
-    if (tool_name !== 'Bash') return console.log('{}');
-
-    const cmd = (tool_input && tool_input.command) || '';
-    const result = checkCommand(cmd);
-
+    const r = resolve(input);
+    if (r.skip) return allow(mode);
+    const result = checkCommand(r.cmd);
     if (result.blocked) {
       const p = result.pattern;
-      log({ level: 'BLOCKED', id: p.id, priority: p.level, cmd, session_id, cwd, permission_mode });
-      return console.log(JSON.stringify({
-        hookSpecificOutput: {
-          hookEventName: 'PreToolUse',
-          permissionDecision: 'deny',
-          permissionDecisionReason: `${EMOJIS[p.level]} Bouncer: name's not on the list — [${p.id}] ${p.reason}`,
-        },
-      }));
+      log({ level: 'BLOCKED', id: p.id, priority: p.level, cmd: r.cmd, ...r.ctx });
+      return deny(mode, p);
     }
-    console.log('{}');
+    allow(mode);
   } catch (e) {
     log({ level: 'ERROR', error: e.message });
-    console.log('{}');
+    allow(mode);
   }
 }
 

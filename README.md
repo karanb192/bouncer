@@ -4,6 +4,14 @@
   <img src="assets/bouncer-social.png" alt="Bouncer — a one-file door-guard for coding agents. Name's not on the list. Blocks 45/45 footguns, 0 false positives." width="840">
 </p>
 
+<p align="center">
+  <img src="https://img.shields.io/badge/footguns-45%2F45_blocked-1f7a4d?style=flat-square" alt="45/45 footguns blocked">
+  <img src="https://img.shields.io/badge/false_positives-0%2F41-1f7a4d?style=flat-square" alt="0 false positives on 41 safe commands">
+  <img src="https://img.shields.io/badge/deps-0-1f7a4d?style=flat-square" alt="zero dependencies">
+  <img src="https://img.shields.io/badge/npm_test-passing-1f7a4d?style=flat-square" alt="npm test passing">
+  <img src="https://img.shields.io/badge/license-MIT-b0820f?style=flat-square" alt="MIT license">
+</p>
+
 **A one-file door-guard for coding agents. Name's not on the list.**
 
 You let your agent run with `--dangerously-skip-permissions`. One day it runs
@@ -31,7 +39,12 @@ those two in [`safe.txt`](safe.txt) (allowed) — verified by `npm test`.
 
 ## The honest number
 
-> **Blocks 45/45 footguns · 0 false positives on 41 safe commands.**
+> **Blocks 45/45 known footguns · 0 false positives on 41 safe commands** — and it
+> openly documents the one class it *can't* catch:
+> [obfuscated payloads](KNOWN-BYPASSES.md) (base64, `eval`, variable-split).
+
+(100% of a *named, public* list — not "100% safe." The list of what it misses ships
+right next to it; that's the difference between a number you can trust and one that reads as fake.)
 
 No marking our own homework. The footguns are **public and labeled**
 ([`footguns.txt`](footguns.txt)); the safe corpus is **separate and public**
@@ -68,27 +81,47 @@ Bouncer speaks the Claude Code hook **deny contract** — it emits
 reliably holds), not a bare `exit 2`. See the
 [Hooks reference](https://code.claude.com/docs/en/hooks).
 
-## Works with any agent that reads stdin
+## Works with any agent — two enforcement modes
 
-The hook is a plain stdin→stdout filter: pipe it the tool-call JSON
-(`{"tool_name":"Bash","tool_input":{"command":"..."}}`), it prints a deny object
-or stays silent. Any runner with a pre-exec command hook can wire it in. For
-agents without hooks (Cursor, Cline, Codex), paste [`footguns.txt`](footguns.txt)
-into your `AGENTS.md` / rules file as an advisory guardrail. **Honest scope:
-enforced on Claude Code, advisory everywhere else** — never conflate the two.
+One portable filter, two output modes. Pick the row that matches your agent:
+
+| Your agent | Mode | Wire-up |
+|---|---|---|
+| **Claude Code** | ✅ enforced (deny contract) | merge [`settings.snippet.json`](settings.snippet.json) — `PreToolUse → Bash → node bouncer.js` |
+| **Any runner with a pre-exec command hook that blocks on a non-zero exit** — check your tool's hook docs | ✅ enforced (exit-code) | run `BOUNCER_MODE=exit node bouncer.js "<command>"` as the hook: exit **2** blocks, **0** allows, reason on stderr |
+| **Agents with no pre-exec hook** (Cursor, Cline, Aider, …) | 📋 advisory | paste [`footguns.txt`](footguns.txt) into `.cursorrules` / `AGENTS.md` |
+
+```bash
+# exit-code mode — the universal, agent-agnostic contract
+BOUNCER_MODE=exit node bouncer.js "rm -rf ~";   echo $?   # → 2  (bounced)
+BOUNCER_MODE=exit node bouncer.js "git status";  echo $?   # → 0  (walks in)
+```
+
+**Honest scope:** *enforced* anywhere it can sit in front of the command — Claude Code's
+deny contract, or any non-zero-exit pre-exec hook — and *advisory* only where the agent
+exposes no such hook. Never conflate the two.
 
 ## FAQ
 
 **Is this a sandbox?** No. It's a seatbelt for the ~95% of footguns that are
 *accidental* — the agent that panics, not the adversary who obfuscates. A
-base64'd, `eval`'d payload can still get past it. That's honesty, not a bug you found.
+base64'd, `eval`'d payload can still get past it — the exact classes are listed in
+[`KNOWN-BYPASSES.md`](KNOWN-BYPASSES.md). That's honesty, not a bug you found.
 
 **Will it block my normal `git`/`npm`/`docker`/`psql` work?** No — that's the
 whole point of the 41-command safe corpus (a `WHERE`'d `UPDATE` walks in; an
 un-`WHERE`'d one gets bounced). If it ever blocks real work, that's a one-line PR.
 
 **Why one file?** You should be able to read your own bouncer before you trust it
-with your repo. It's ~120 lines of stdlib Node.
+with your repo. It's ~160 lines of stdlib Node — most of it a rule table you can scan.
+
+## Limitations
+
+Bouncer is a **regex filter, not a sandbox.** It stops the ~95% of footguns that are
+*accidental*, not an adversary who obfuscates. [`KNOWN-BYPASSES.md`](KNOWN-BYPASSES.md)
+lists the exact classes it can't catch (base64, `eval`, variable-split, string-split SQL),
+each with *why* a regex misses it — and each pinned by a test so the headline number can
+never quietly overstate coverage. **A found gap is a one-line PR**, not a gotcha.
 
 ## License
 

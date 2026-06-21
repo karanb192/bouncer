@@ -44,6 +44,30 @@ test('real hook: a safe command passes silently', () => {
   assert.strictEqual(res.stdout.trim(), '{}');
 });
 
+test('exit mode: a footgun exits 2 with the reason on stderr (any-agent hook)', () => {
+  const res = spawnSync('node', [path.join(__dirname, 'bouncer.js'), 'rm -rf ~'], {
+    env: { ...process.env, BOUNCER_MODE: 'exit' }, encoding: 'utf8',
+  });
+  assert.strictEqual(res.status, 2);
+  assert.match(res.stderr, /name's not on the list/);
+});
+
+test('exit mode: a safe command exits 0', () => {
+  const res = spawnSync('node', [path.join(__dirname, 'bouncer.js'), 'git status'], {
+    env: { ...process.env, BOUNCER_MODE: 'exit' }, encoding: 'utf8',
+  });
+  assert.strictEqual(res.status, 0);
+});
+
+// Honesty pin: the bypasses documented in KNOWN-BYPASSES.md are KNOWINGLY not caught
+// (regex, not a sandbox). This test fails loudly if one ever starts being blocked, so the
+// docs can never silently overstate coverage — and a self-reported 100% never reads as fake.
+test('documented bypasses are knowingly NOT blocked (see KNOWN-BYPASSES.md)', () => {
+  const bypasses = ['R=rm; $R -rf ~', "eval \"$(printf 'rm -rf ~')\"", 'echo cm0gLXJmIH4= | base64 -d | sh'];
+  const caught = bypasses.filter((c) => checkCommand(c).blocked);
+  assert.deepStrictEqual(caught, [], 'a documented bypass started being caught — update KNOWN-BYPASSES.md');
+});
+
 test(`HEADLINE: blocks ${footguns.length}/${footguns.length} footguns, 0 false positives on ${safe.length} safe commands`, () => {
   assert.ok(footguns.length >= 40, 'gauntlet should cover 40+ footguns');
 });
