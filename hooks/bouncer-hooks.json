@@ -6,8 +6,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "command -v node >/dev/null 2>&1 && node \"${CLAUDE_PLUGIN_ROOT}/bouncer.js\" || exit 0",
-            "commandWindows": "if (Get-Command node -ErrorAction SilentlyContinue) { node \"$env:CLAUDE_PLUGIN_ROOT\\bouncer.js\" }",
+            "command": "command -v node >/dev/null 2>&1 && node \"${CLAUDE_PLUGIN_ROOT:-${PLUGIN_ROOT}}/bouncer.js\" || exit 0",
+            "commandWindows": "$r = if ($env:CLAUDE_PLUGIN_ROOT) { $env:CLAUDE_PLUGIN_ROOT } else { $env:PLUGIN_ROOT }; if (Get-Command node -ErrorAction SilentlyContinue) { node \"$r\\bouncer.js\" }",
             "timeout": 5
           }
         ]
