@@ -61,55 +61,79 @@ npm test          # → blocks 45/45 footguns, 0 false positives on 41 safe comm
 (`block-dangerous-commands.js`, **262 passing tests**) and extended here with
 database, exfil, and device footguns.
 
-**What gets bounced:** `rm -rf`, `dd`/`wipefs`/`mkfs` to a device, `chmod 777`,
-`git push --force` to main, `git reset --hard`, `curl | sh`, `curl` to paste
-hosts, env/secret exfil, `DROP`/`TRUNCATE`/un-`WHERE`'d `DELETE`/`UPDATE`,
-`redis-cli flushall`, `dropdb`, fork bombs, `kill -9 1`, overwriting
-`/etc/passwd`, `npm publish`. Full list in [`footguns.txt`](footguns.txt).
+**What gets bounced is 38 pattern rules, not a fixed list of commands.** Each rule matches a
+whole class, so `rm -rf ~`, `rm -fr ~`, and `rm --recursive ~` all hit the same one. The classes:
+`rm -rf` into home/root/cwd, `dd`/`wipefs`/`mkfs` to a device, `chmod 777`, `git push --force` to
+main, `git reset --hard`, `curl | sh`, `curl` to paste hosts, env/secret exfil,
+`DROP`/`TRUNCATE`/un-`WHERE`'d `DELETE`/`UPDATE`, `redis-cli flushall`, `dropdb`, fork bombs,
+`kill -9 1`, overwriting `/etc/passwd`, `npm publish`. The 45 commands in
+[`footguns.txt`](footguns.txt) are the test corpus that proves those rules fire; the 41 in
+[`safe.txt`](safe.txt) prove they don't over-block.
 
-## Install (Claude Code)
+## Install
+
+Pick your agent. Every path needs Node ≥18 (zero deps). Tune protection with
+`BOUNCER_LEVEL=critical|high|strict` (default `high`); disable anytime with `BOUNCER_OFF=1`.
+
+### Claude Code
 
 ```text
 /plugin marketplace add karanb192/bouncer
 /plugin install bouncer@bouncer
 ```
 
-That's it. The `PreToolUse` hook registers itself. Every Bash call passes the
-door from the next session on. Needs Node ≥18 (zero deps). Dial protection with
-`BOUNCER_LEVEL=critical|high|strict` (default `high`); disable anytime with
-`BOUNCER_OFF=1`.
+The `PreToolUse` hook registers itself; every Bash call passes the door from the next session
+on. Bouncer emits the deny contract (`hookSpecificOutput.permissionDecision: "deny"` with a
+reason, the path that reliably holds, not a bare `exit 2`).
 
-> **Desktop app** (no `/plugin` command): Customize → the **+** next to personal
-> plugins → *Create plugin and add marketplace* → *Add from repository* →
-> `karanb192/bouncer`.
+> **Desktop app** (no `/plugin` command): Customize → the **+** next to personal plugins →
+> *Create plugin and add marketplace* → *Add from repository* → `karanb192/bouncer`.
 
 <details>
 <summary>Manual install (without the plugin system)</summary>
 
-Drop `bouncer.js` anywhere (Node ≥18, zero deps) and merge
-[`settings.snippet.json`](settings.snippet.json) into `~/.claude/settings.json`
-(or project `.claude/settings.json`), replacing the path with the absolute path
-to `bouncer.js`.
+Drop `bouncer.js` anywhere and merge [`settings.snippet.json`](settings.snippet.json) into
+`~/.claude/settings.json` (or project `.claude/settings.json`), replacing the path with the
+absolute path to `bouncer.js`.
 </details>
 
-Bouncer speaks the Claude Code hook **deny contract**: it emits
-`hookSpecificOutput.permissionDecision: "deny"` with a reason (the path that
-reliably holds), not a bare `exit 2`. See the
-[Hooks reference](https://code.claude.com/docs/en/hooks).
+### Codex CLI
 
-## Works with any agent
+```text
+codex plugin marketplace add karanb192/bouncer
+codex plugin add bouncer@bouncer
+```
 
-One portable filter that speaks each agent's native deny contract, plus a universal
-exit-code mode for everything else. Pick the row that matches your agent:
+Then run **`/hooks`** in Codex and **trust Bouncer**. Codex silently skips *untrusted* hooks, so
+until you trust it, it does nothing. Once trusted it blocks via the same `permissionDecision: "deny"`
+contract (verified live, it holds even under `--yolo`). Note Codex's `PreToolUse` is a guardrail, not
+a hard sandbox per OpenAI's docs, so it can occasionally route equivalent work through another tool path.
 
-| Your agent | Mode | Wire-up |
-|---|---|---|
-| **Claude Code** | ✅ enforced (deny contract) | `/plugin marketplace add karanb192/bouncer` → `/plugin install bouncer@bouncer` |
-| **Codex CLI** | ✅ enforced (PreToolUse deny), once trusted | `codex plugin marketplace add karanb192/bouncer` → `codex plugin add bouncer@bouncer`, then run `/hooks` in Codex and trust Bouncer. Until you trust it, Codex **silently skips** the hook. |
-| **GitHub Copilot CLI** | ✅ enforced (fail-closed `preToolUse` deny) | `copilot plugin marketplace add karanb192/bouncer` → `copilot plugin install bouncer@bouncer` |
-| **Gemini CLI** | ✅ enforced (`BeforeTool` `decision:block`) | `gemini extensions install https://github.com/karanb192/bouncer` (shorthand `gemini extensions install karanb192/bouncer` also works), then approve the hooks-consent prompt |
-| **Any runner with a pre-exec command hook that blocks on a non-zero exit** (check your tool's hook docs) | ✅ enforced (exit-code) | run `BOUNCER_MODE=exit node bouncer.js "<command>"` as the hook: exit **2** blocks, **0** allows, reason on stderr |
-| **Agents with no pre-exec hook** (Cursor, Cline, Aider, …) | 📋 advisory | paste [`footguns.txt`](footguns.txt) into `.cursorrules` / `AGENTS.md` |
+### GitHub Copilot CLI
+
+```text
+copilot plugin marketplace add karanb192/bouncer
+copilot plugin install bouncer@bouncer
+```
+
+The fail-closed `preToolUse` hook denies destructive commands automatically (a crash or timeout
+denies too). Verified live: it refused a real `chmod 777`.
+
+### Gemini CLI
+
+```text
+gemini extensions install https://github.com/karanb192/bouncer
+```
+
+Approve the hooks-consent prompt on install (the shorthand `gemini extensions install karanb192/bouncer`
+also works). The `BeforeTool` hook blocks shell commands via `decision: "block"`.
+
+### Any other agent
+
+- **Has a pre-exec hook that blocks on a non-zero exit?** Wire `BOUNCER_MODE=exit node bouncer.js "<command>"`
+  as the hook: exit **2** blocks, **0** allows, reason on stderr.
+- **No blocking hook?** Paste [`footguns.txt`](footguns.txt) into your `.cursorrules` / `AGENTS.md` as
+  advisory guardrails (the regex won't run, but the model gets steered).
 
 ```bash
 # exit-code mode: the universal, agent-agnostic contract
@@ -117,14 +141,12 @@ BOUNCER_MODE=exit node bouncer.js "rm -rf ~";   echo $?   # → 2  (bounced)
 BOUNCER_MODE=exit node bouncer.js "git status";  echo $?   # → 0  (walks in)
 ```
 
-**These are the flags that turn the safety prompts off, which is when a door-guard earns its keep:** `--dangerously-skip-permissions` (Claude Code), `--yolo` (Codex, Copilot, Gemini).
+**When does this matter?** Exactly when you turn the safety prompts off:
+`--dangerously-skip-permissions` (Claude Code), `--yolo` (Codex, Copilot, Gemini). That's when a
+door-guard earns its keep.
 
-**Honest scope:** *enforced* through each agent's native deny contract (see the table above
-for per-agent setup, including Codex's one-time `/hooks` trust). One caveat worth stating: Codex's
-`PreToolUse` is a guardrail, not a hard sandbox per OpenAI's docs, so it can occasionally route
-equivalent work through another tool path. Anywhere else, the exit-code mode enforces in any runner
-with a blocking pre-exec hook; it's *advisory* only where the agent exposes no such hook. Never
-conflate the two.
+**Honest scope:** *enforced* through each agent's native deny contract, with the one-time setup each
+section notes above; *advisory* only where the agent exposes no blocking hook. Never conflate the two.
 
 ## FAQ
 
