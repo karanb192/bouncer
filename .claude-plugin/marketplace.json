@@ -1,0 +1,18 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "bouncer",
+  "description": "A one-file door-guard for coding agents. Name's not on the list.",
+  "owner": {
+    "name": "Karan Bansal",
+    "url": "https://github.com/karanb192"
+  },
+  "plugins": [
+    {
+      "name": "bouncer",
+      "description": "Bounces destructive Bash commands before they run — rm -rf, DROP TABLE, curl|sh, force-push, device wipes. 45/45 known footguns blocked, 0 false positives.",
+      "source": "./",
+      "category": "security",
+      "tags": ["security", "safety", "hooks", "guardrails", "pretooluse"]
+    }
+  ]
+}

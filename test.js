@@ -1,0 +1,135 @@
+#!/usr/bin/env node
+/**
+ * The Bouncer gauntlet — the headline number, reproducible in one command.
+ * Every command in footguns.txt MUST be denied; every command in safe.txt MUST pass.
+ * The corpora are public and separate (safe.txt is the anti-homework metric).
+ * Run: npm test    (or: node --test test.js)
+ */
+
+const { test } = require('node:test');
+const assert = require('node:assert');
+const fs = require('node:fs');
+const path = require('node:path');
+const { spawnSync } = require('node:child_process');
+const { checkCommand } = require('./bouncer.js');
+
+const read = (f) => fs.readFileSync(path.join(__dirname, f), 'utf8')
+  .split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#'));
+
+const footguns = read('footguns.txt');
+const safe = read('safe.txt');
+
+test(`footguns: all ${footguns.length} are BOUNCED`, () => {
+  const slipped = footguns.filter((c) => !checkCommand(c).blocked);
+  assert.deepStrictEqual(slipped, [], `\nThese footguns slipped past:\n  ${slipped.join('\n  ')}\n`);
+});
+
+test(`safe: 0 false positives across ${safe.length} real commands`, () => {
+  const blocked = safe.filter((c) => checkCommand(c).blocked)
+    .map((c) => `${c}   ->   [${checkCommand(c).pattern.id}]`);
+  assert.deepStrictEqual(blocked, [], `\nFalse positives (real work blocked):\n  ${blocked.join('\n  ')}\n`);
+});
+
+test('real hook: a footgun is DENIED via permissionDecision (not a bare exit 2)', () => {
+  const res = spawnSync('node', [path.join(__dirname, 'bouncer.js')], {
+    input: JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'rm -rf /' } }), encoding: 'utf8',
+  });
+  assert.strictEqual(JSON.parse(res.stdout.trim()).hookSpecificOutput.permissionDecision, 'deny');
+});
+
+test('real hook: a safe command passes silently', () => {
+  const res = spawnSync('node', [path.join(__dirname, 'bouncer.js')], {
+    input: JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'git status' } }), encoding: 'utf8',
+  });
+  assert.strictEqual(res.stdout.trim(), '{}');
+});
+
+// These assert the FLAT shape Copilot actually consumes (not bouncer's own wrapper).
+test('copilot mode: object toolArgs footgun → FLAT permissionDecision deny', () => {
+  const res = spawnSync('node', [path.join(__dirname, 'bouncer.js')], {
+    input: JSON.stringify({ toolName: 'bash', toolArgs: { command: 'rm -rf ~' } }),
+    env: { ...process.env, BOUNCER_MODE: 'copilot' }, encoding: 'utf8',
+  });
+  const out = JSON.parse(res.stdout.trim());
+  assert.strictEqual(out.permissionDecision, 'deny');
+  assert.strictEqual(out.hookSpecificOutput, undefined); // FLAT, not the Claude wrapper
+});
+
+test('copilot mode: stringified (double-encoded) toolArgs footgun → FLAT deny', () => {
+  const res = spawnSync('node', [path.join(__dirname, 'bouncer.js')], {
+    input: JSON.stringify({ toolName: 'bash', toolArgs: JSON.stringify({ command: 'rm -rf ~' }) }),
+    env: { ...process.env, BOUNCER_MODE: 'copilot' }, encoding: 'utf8',
+  });
+  assert.strictEqual(JSON.parse(res.stdout.trim()).permissionDecision, 'deny');
+});
+
+test('copilot mode: a safe command → explicit allow (fail-closed agent needs a decision)', () => {
+  const res = spawnSync('node', [path.join(__dirname, 'bouncer.js')], {
+    input: JSON.stringify({ toolName: 'bash', toolArgs: { command: 'ls' } }),
+    env: { ...process.env, BOUNCER_MODE: 'copilot' }, encoding: 'utf8',
+  });
+  assert.strictEqual(JSON.parse(res.stdout.trim()).permissionDecision, 'allow');
+});
+
+test('gemini hook: run_shell_command footgun is BLOCKED via decision:block', () => {
+  const res = spawnSync('node', [path.join(__dirname, 'bouncer.js')], {
+    input: JSON.stringify({ tool_name: 'run_shell_command', tool_input: { command: 'rm -rf ~' } }),
+    env: { ...process.env, BOUNCER_MODE: 'gemini' }, encoding: 'utf8',
+  });
+  const out = JSON.parse(res.stdout.trim());
+  assert.strictEqual(out.decision, 'block');
+  assert.match(out.reason, /name's not on the list/);
+});
+
+test('gemini hook: ShellTool alias footgun is BLOCKED via decision:block', () => {
+  const res = spawnSync('node', [path.join(__dirname, 'bouncer.js')], {
+    input: JSON.stringify({ tool_name: 'ShellTool', tool_input: { command: 'rm -rf ~' } }),
+    env: { ...process.env, BOUNCER_MODE: 'gemini' }, encoding: 'utf8',
+  });
+  assert.strictEqual(JSON.parse(res.stdout.trim()).decision, 'block');
+});
+
+test('gemini hook: a safe run_shell_command passes silently ({})', () => {
+  const res = spawnSync('node', [path.join(__dirname, 'bouncer.js')], {
+    input: JSON.stringify({ tool_name: 'run_shell_command', tool_input: { command: 'git status' } }),
+    env: { ...process.env, BOUNCER_MODE: 'gemini' }, encoding: 'utf8',
+  });
+  assert.strictEqual(res.stdout.trim(), '{}');
+});
+
+test('regression: run_shell_command is NO LONGER skipped (rm -rf ~ would be allowed before the fix)', () => {
+  // Claude-mode default: a Gemini-shaped run_shell_command footgun must still be denied,
+  // proving resolve() no longer treats it as a non-shell tool to skip.
+  const res = spawnSync('node', [path.join(__dirname, 'bouncer.js')], {
+    input: JSON.stringify({ tool_name: 'run_shell_command', tool_input: { command: 'rm -rf ~' } }), encoding: 'utf8',
+  });
+  assert.strictEqual(JSON.parse(res.stdout.trim()).hookSpecificOutput.permissionDecision, 'deny');
+});
+
+test('exit mode: a footgun exits 2 with the reason on stderr (any-agent hook)', () => {
+  const res = spawnSync('node', [path.join(__dirname, 'bouncer.js'), 'rm -rf ~'], {
+    env: { ...process.env, BOUNCER_MODE: 'exit' }, encoding: 'utf8',
+  });
+  assert.strictEqual(res.status, 2);
+  assert.match(res.stderr, /name's not on the list/);
+});
+
+test('exit mode: a safe command exits 0', () => {
+  const res = spawnSync('node', [path.join(__dirname, 'bouncer.js'), 'git status'], {
+    env: { ...process.env, BOUNCER_MODE: 'exit' }, encoding: 'utf8',
+  });
+  assert.strictEqual(res.status, 0);
+});
+
+// Honesty pin: the bypasses documented in KNOWN-BYPASSES.md are KNOWINGLY not caught
+// (regex, not a sandbox). This test fails loudly if one ever starts being blocked, so the
+// docs can never silently overstate coverage — and a self-reported 100% never reads as fake.
+test('documented bypasses are knowingly NOT blocked (see KNOWN-BYPASSES.md)', () => {
+  const bypasses = ['R=rm; $R -rf ~', "eval \"$(printf 'rm -rf ~')\"", 'echo cm0gLXJmIH4= | base64 -d | sh'];
+  const caught = bypasses.filter((c) => checkCommand(c).blocked);
+  assert.deepStrictEqual(caught, [], 'a documented bypass started being caught — update KNOWN-BYPASSES.md');
+});
+
+test(`HEADLINE: blocks ${footguns.length}/${footguns.length} footguns, 0 false positives on ${safe.length} safe commands`, () => {
+  assert.ok(footguns.length >= 40, 'gauntlet should cover 40+ footguns');
+});

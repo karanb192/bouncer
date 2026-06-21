@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "bash": "BOUNCER_MODE=copilot node \"${PLUGIN_ROOT}/bouncer.js\"",
+        "powershell": "$env:BOUNCER_MODE='copilot'; node \"${PLUGIN_ROOT}\\bouncer.js\"",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}

@@ -1,0 +1,53 @@
+# Bouncer safe corpus — every line MUST be ALLOWED. This is the anti-homework metric:
+# a guard that blocks real work gets uninstalled in week one. Comments (#) / blanks ignored.
+
+# --- reading & inspecting ---
+ls -la
+cat README.md
+head -n 20 package.json
+grep -rn "TODO" src
+find . -name "*.js"
+rg "permissionDecision" .
+wc -l bouncer.js
+stat bouncer.js
+diff a.txt b.txt
+sort names.txt | uniq
+
+# --- git, the safe verbs (incl. the SAFE way to force-push) ---
+git status
+git diff HEAD~1
+git log --oneline -10
+git show abc123
+git branch -a
+git stash
+git fetch origin
+git rev-parse HEAD
+git push --force-with-lease origin main
+
+# --- normal dev work ---
+npm install
+npm run build
+npm test
+pnpm dev
+yarn lint
+node test.js
+python3 script.py
+make
+cargo build
+go test ./...
+
+# --- scoped deletes & moves (not catastrophic) ---
+rm dist/bundle.js
+rm -r build
+rm temp.log
+mkdir -p src/lib
+cp config.example.json config.json
+mv old.txt new.txt
+touch .gitkeep
+chmod +x bin/test
+
+# --- benign network & scoped db writes ---
+curl -fsSL https://api.github.com/repos/anthropics/claude-code
+psql -c "SELECT * FROM users LIMIT 5;"
+psql -c "UPDATE accounts SET balance = 0 WHERE id = 7;"
+echo "build complete"

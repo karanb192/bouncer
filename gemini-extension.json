@@ -1,0 +1,6 @@
+{
+  "name": "bouncer",
+  "version": "1.0.0",
+  "description": "A one-file door-guard for coding agents. Reads every shell command at the door; the dangerous ones don't get in.",
+  "contextFileName": "AGENTS.md"
+}
