@@ -37,6 +37,11 @@ exact rule that fired.
 Every line above is real: those four are in [`footguns.txt`](footguns.txt) (denied),
 those two in [`safe.txt`](safe.txt) (allowed), verified by `npm test`.
 
+<p align="center">
+  <img src="assets/bouncer-demo.png" alt="Claude Code tries to run chmod 777 and Bouncer's PreToolUse hook denies it before execution: name's not on the list. [chmod-777] chmod 777 is a security risk. The agent then offers safer alternatives." width="820">
+</p>
+<p align="center"><sub><i>Live in Claude Code: the agent reaches for <code>chmod 777</code>, Bouncer bounces it before it runs.</i></sub></p>
+
 ## The honest number
 
 > **Blocks 45/45 known footguns · 0 false positives on 41 safe commands.** It
