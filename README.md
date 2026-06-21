@@ -108,7 +108,7 @@ exit-code mode for everything else. Pick the row that matches your agent:
 |---|---|---|
 | **Claude Code** | ✅ enforced (deny contract) | `/plugin marketplace add karanb192/bouncer` → `/plugin install bouncer@bouncer` |
 | **Codex CLI** | ✅ enforced (PreToolUse deny) | `codex plugin marketplace add karanb192/bouncer` → `codex plugin add bouncer@bouncer` |
-| **GitHub Copilot CLI** | ✅ enforced (fail-closed `preToolUse` deny) | `copilot plugin install karanb192/bouncer` (or `copilot plugin marketplace add karanb192/bouncer` → `copilot plugin install bouncer@bouncer`) |
+| **GitHub Copilot CLI** | ✅ enforced (fail-closed `preToolUse` deny) | `copilot plugin marketplace add karanb192/bouncer` → `copilot plugin install bouncer@bouncer` |
 | **Gemini CLI** | ✅ enforced (`BeforeTool` `decision:block`) | `gemini extensions install https://github.com/karanb192/bouncer` (shorthand `gemini extensions install karanb192/bouncer` also works) — approve the hooks-consent prompt |
 | **Any runner with a pre-exec command hook that blocks on a non-zero exit** — check your tool's hook docs | ✅ enforced (exit-code) | run `BOUNCER_MODE=exit node bouncer.js "<command>"` as the hook: exit **2** blocks, **0** allows, reason on stderr |
 | **Agents with no pre-exec hook** (Cursor, Cline, Aider, …) | 📋 advisory | paste [`footguns.txt`](footguns.txt) into `.cursorrules` / `AGENTS.md` |
