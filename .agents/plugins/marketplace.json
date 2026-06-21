@@ -1,0 +1,20 @@
+{
+  "name": "bouncer",
+  "interface": {
+    "displayName": "Bouncer"
+  },
+  "plugins": [
+    {
+      "name": "bouncer",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/karanb192/bouncer.git",
+        "ref": "main"
+      },
+      "policy": {
+        "installation": "AVAILABLE"
+      },
+      "category": "Security"
+    }
+  ]
+}

@@ -106,6 +106,7 @@ One portable filter, two output modes. Pick the row that matches your agent:
 | Your agent | Mode | Wire-up |
 |---|---|---|
 | **Claude Code** | ✅ enforced (deny contract) | `/plugin marketplace add karanb192/bouncer` → `/plugin install bouncer@bouncer` |
+| **Codex CLI** | ✅ enforced (PreToolUse deny) | `codex plugin marketplace add karanb192/bouncer` → `codex plugin add bouncer@bouncer` |
 | **Any runner with a pre-exec command hook that blocks on a non-zero exit** — check your tool's hook docs | ✅ enforced (exit-code) | run `BOUNCER_MODE=exit node bouncer.js "<command>"` as the hook: exit **2** blocks, **0** allows, reason on stderr |
 | **Agents with no pre-exec hook** (Cursor, Cline, Aider, …) | 📋 advisory | paste [`footguns.txt`](footguns.txt) into `.cursorrules` / `AGENTS.md` |
 
@@ -116,7 +117,9 @@ BOUNCER_MODE=exit node bouncer.js "git status";  echo $?   # → 0  (walks in)
 ```
 
 **Honest scope:** *enforced* anywhere it can sit in front of the command — Claude Code's
-deny contract, or any non-zero-exit pre-exec hook — and *advisory* only where the agent
+deny contract, Codex CLI's `PreToolUse` deny (same JSON contract; per OpenAI's docs it's a
+guardrail, not a hard sandbox — Codex can occasionally route equivalent work through another
+tool path), or any non-zero-exit pre-exec hook — and *advisory* only where the agent
 exposes no such hook. Never conflate the two.
 
 ## FAQ
