@@ -10,7 +10,7 @@
   "repository": "https://github.com/karanb192/bouncer",
   "license": "MIT",
   "keywords": ["security", "safety", "hooks", "guardrails", "codex", "pretooluse"],
-  "hooks": "./hooks/bouncer-hooks.json",
+  "hooks": "./claude/hooks/hooks.json",
   "interface": {
     "displayName": "Bouncer",
     "shortDescription": "Bounces destructive shell commands before they run",
