@@ -9,10 +9,16 @@
   "plugins": [
     {
       "name": "bouncer",
-      "description": "Bounces destructive Bash commands before they run — rm -rf, DROP TABLE, curl|sh, force-push, device wipes. 45/45 known footguns blocked, 0 false positives.",
-      "source": "./",
+      "description": "Bounces destructive Bash commands before they run: rm -rf, DROP TABLE, curl|sh, force-push, device wipes. 45/45 known footguns blocked, 0 false positives.",
+      "source": "./claude",
       "category": "security",
-      "tags": ["security", "safety", "hooks", "guardrails", "pretooluse"]
+      "tags": [
+        "security",
+        "safety",
+        "hooks",
+        "guardrails",
+        "pretooluse"
+      ]
     }
   ]
 }

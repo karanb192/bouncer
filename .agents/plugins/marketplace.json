@@ -7,8 +7,9 @@
     {
       "name": "bouncer",
       "source": {
-        "source": "url",
+        "source": "git-subdir",
         "url": "https://github.com/karanb192/bouncer.git",
+        "path": "claude",
         "ref": "main"
       },
       "policy": {

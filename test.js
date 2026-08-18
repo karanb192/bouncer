@@ -133,3 +133,13 @@ test('documented bypasses are knowingly NOT blocked (see KNOWN-BYPASSES.md)', ()
 test(`HEADLINE: blocks ${footguns.length}/${footguns.length} footguns, 0 false positives on ${safe.length} safe commands`, () => {
   assert.ok(footguns.length >= 40, 'gauntlet should cover 40+ footguns');
 });
+
+// The Claude plugin lives in claude/ so its install never picks up the Gemini
+// hooks manifest at hooks/hooks.json (Gemini hard-codes that path; newer Claude
+// CLIs validate it and fail the whole plugin load on the BeforeTool key).
+// claude/ ships its own copy of bouncer.js; the two copies must stay identical.
+test('claude/bouncer.js is byte-identical to bouncer.js', () => {
+  const root = fs.readFileSync(path.join(__dirname, 'bouncer.js'), 'utf8');
+  const copy = fs.readFileSync(path.join(__dirname, 'claude', 'bouncer.js'), 'utf8');
+  assert.strictEqual(copy, root, 'claude/bouncer.js drifted; copy bouncer.js over it');
+});
